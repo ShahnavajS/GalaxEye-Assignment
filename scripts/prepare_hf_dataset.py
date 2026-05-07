@@ -22,6 +22,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Download or reuse the official Hugging Face dataset.")
     parser.add_argument("--config", type=Path, default=Path("configs/final_config.yaml"))
     parser.add_argument("--force-download", action="store_true")
+    parser.add_argument("--force-extract", action="store_true")
     parser.add_argument("--output-json", type=Path, default=None)
     return parser.parse_args()
 
@@ -36,6 +37,7 @@ def main() -> None:
         config,
         download_if_missing=True,
         force_download=args.force_download,
+        force_extract=args.force_extract,
         logger=logger,
     )
 
