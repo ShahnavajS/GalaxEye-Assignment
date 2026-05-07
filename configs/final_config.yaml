@@ -1,0 +1,100 @@
+project:
+  name: galaxeye-binary-change-detection
+  seed: 42
+  deterministic: true
+  require_cuda: true
+
+paths:
+  dataset_root: null
+  output_root: outputs
+  checkpoint_subdir: checkpoints
+  log_subdir: logs
+  metrics_subdir: metrics
+  inference_subdir: inference
+
+data:
+  source: hf
+  local_dataset_root: .
+  hf_repo_id: doron333/change-detection-dataset
+  hf_revision: main
+  hf_cache_dir: ~/.cache/huggingface
+  hf_local_dir: null
+  download_on_missing: true
+  train_split: train
+  val_split: val
+  test_split: test
+  modalities:
+    - eo_pre
+  image_size: 256
+  batch_size: 8
+  num_workers: 2
+  train_sample_limit: null
+  val_sample_limit: null
+
+model:
+  architecture: unet
+  encoder_name: resnet18
+  encoder_weights: null
+  output_classes: 1
+
+optimizer:
+  name: adamw
+  lr: 0.0003
+  weight_decay: 0.0001
+
+scheduler:
+  name: plateau
+  mode: max
+  factor: 0.5
+  patience: 3
+  min_lr: 0.000001
+
+loss:
+  name: bce_dice
+  bce_weight: 1.0
+  dice_weight: 1.0
+  focal_weight: 0.0
+  focal_gamma: 2.0
+  focal_alpha: 0.25
+  use_pos_weight: true
+  pos_weight_max: 12.0
+
+augmentation:
+  use_transpose: true
+  affine_probability: 0.25
+  affine_scale: 0.05
+  affine_translate: 0.05
+
+training:
+  epochs: 30
+  amp: true
+  threshold: 0.5
+  grad_clip_norm: 1.0
+  monitor: search_f1
+  resume_from: null
+
+threshold_search:
+  enabled: true
+  metric: f1
+  start: 0.40
+  end: 0.70
+  step: 0.05
+  apply_best_threshold_on_eval: true
+
+logging:
+  experiment_name: final_unet_resnet18_eo_only
+  csv_name: history.csv
+  log_every_steps: 20
+  experiment_index: experiment_index.csv
+
+evaluation:
+  amp: true
+  max_visualizations: 24
+  save_prediction_masks: true
+
+inference:
+  amp: true
+  max_visualizations: 24
+  top_k_failures: 8
+  uncertainty_band: 0.1
+  grid_columns: 3

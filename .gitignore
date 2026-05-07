@@ -1,0 +1,26 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+.env
+.venv/
+venv/
+.python_packages/
+
+outputs/
+logs/
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+
+# Local or cached datasets
+train/
+val/
+test/
+data/
+hf_cache/
+datasets_cache/
+.cache/
