@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from utils.dataset_utils import is_image_file, load_image_array
+from utils.dataset_utils import describe_array, is_image_file, load_image_array
 from utils.label_utils import remap_mask, validate_mask_values
 
 LOGGER = logging.getLogger(__name__)
@@ -144,6 +144,42 @@ class ChangeDetectionDataset(Dataset):
                 }
             )
         return description
+
+    def inspect_sample(self, index: int = 0) -> dict[str, Any]:
+        if not self.samples:
+            raise RuntimeError("Cannot inspect a sample from an empty dataset.")
+
+        record = self.samples[index]
+        modality_info: dict[str, dict[str, Any]] = {}
+        for modality_name in self.modalities:
+            path = record.modality_paths[modality_name]
+            array = load_image_array(path, logger=self.logger)
+            if array is None:
+                raise RuntimeError(f"Failed to read {path} while auditing sample '{record.sample_id}'.")
+
+            metadata = describe_array(array)
+            modality_info[modality_name] = {
+                "path": str(path),
+                "shape": metadata["shape"],
+                "channels": metadata["channels"],
+                "dtype": metadata["dtype"],
+            }
+
+        mask = load_image_array(record.mask_path, logger=self.logger)
+        if mask is None:
+            raise RuntimeError(f"Failed to read {record.mask_path} while auditing sample '{record.sample_id}'.")
+
+        mask_metadata = describe_array(mask)
+        return {
+            "sample_id": record.sample_id,
+            "modalities": modality_info,
+            "mask": {
+                "path": str(record.mask_path),
+                "shape": mask_metadata["shape"],
+                "channels": mask_metadata["channels"],
+                "dtype": mask_metadata["dtype"],
+            },
+        }
 
     def split_image_by_modality(self, image: torch.Tensor | np.ndarray) -> dict[str, torch.Tensor | np.ndarray]:
         if isinstance(image, np.ndarray):

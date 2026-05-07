@@ -307,6 +307,28 @@ def build_summary_payload(
     }
 
 
+def log_dataset_audit(logger, dataset, split_name: str) -> dict[str, Any]:
+    audit = dataset.inspect_sample(0)
+    logger.info("Resolved %s audit sample: %s", split_name, audit["sample_id"])
+    for modality_name, metadata in audit["modalities"].items():
+        logger.info(
+            "%s -> %s | shape=%s | channels=%d | dtype=%s",
+            modality_name,
+            metadata["path"],
+            metadata["shape"],
+            metadata["channels"],
+            metadata["dtype"],
+        )
+    logger.info(
+        "mask -> %s | shape=%s | channels=%d | dtype=%s",
+        audit["mask"]["path"],
+        audit["mask"]["shape"],
+        audit["mask"]["channels"],
+        audit["mask"]["dtype"],
+    )
+    return audit
+
+
 def main() -> None:
     args = parse_args()
     config = load_config(args.config)
@@ -425,12 +447,17 @@ def main() -> None:
     )
     logger.info("Channel layout: %s", train_dataset.describe_channels())
     logger.info("raw_pos_weight: %.4f | effective_pos_weight: %.4f", raw_pos_weight, float(pos_weight or 1.0))
+    train_audit = log_dataset_audit(logger, train_dataset, split_name="train")
 
     if train_dataset.modalities == ["eo_pre", "eo_post"] and train_dataset.num_channels != 6:
-        logger.warning(
-            "Configured EO temporal baseline but resolved %d input channels instead of 6. "
-            "The mapped dataset files are not both RGB EO images.",
-            train_dataset.num_channels,
+        resolved_channels = {
+            modality_name: int(metadata["channels"])
+            for modality_name, metadata in train_audit["modalities"].items()
+        }
+        raise RuntimeError(
+            "Configured EO temporal baseline requires two RGB images (6 input channels), "
+            f"but the resolved sample '{train_audit['sample_id']}' maps to {resolved_channels}. "
+            "The current dataset root does not provide RGB files for both eo_pre and eo_post."
         )
 
     model = build_segmentation_model(
