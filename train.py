@@ -350,6 +350,9 @@ def main() -> None:
         use_train_amp,
         use_eval_amp,
     )
+    logger.info("Configured modalities: %s", modalities)
+    if modality_aliases:
+        logger.info("Configured modality aliases: %s", modality_aliases)
 
     dataset_root = resolve_dataset_root(config, download_if_missing=True, logger=logger)
 
@@ -414,7 +417,7 @@ def main() -> None:
         )
 
     logger.info(
-        "Train samples: %d | Val samples: %d | Input channels: %d | Modalities: %s",
+        "Train samples: %d | Val samples: %d | Input channels: %d | Active dataset modalities: %s",
         len(train_dataset_for_loader),
         len(val_dataset_for_loader),
         train_dataset.num_channels,
@@ -423,6 +426,13 @@ def main() -> None:
     logger.info("Channel layout: %s", train_dataset.describe_channels())
     logger.info("raw_pos_weight: %.4f | effective_pos_weight: %.4f", raw_pos_weight, float(pos_weight or 1.0))
 
+    if train_dataset.modalities == ["eo_pre", "eo_post"] and train_dataset.num_channels != 6:
+        logger.warning(
+            "Configured EO temporal baseline but resolved %d input channels instead of 6. "
+            "The mapped dataset files are not both RGB EO images.",
+            train_dataset.num_channels,
+        )
+
     model = build_segmentation_model(
         architecture=architecture,
         encoder_name=encoder_name,
@@ -430,6 +440,7 @@ def main() -> None:
         in_channels=train_dataset.num_channels,
         classes=int(config["model"]["output_classes"]),
     ).to(device)
+    logger.info("Model input channels: %d", train_dataset.num_channels)
 
     criterion = build_loss(
         name=loss_name,

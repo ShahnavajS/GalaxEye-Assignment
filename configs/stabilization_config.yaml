@@ -25,6 +25,12 @@ data:
   test_split: test
   modalities:
     - eo_pre
+    - eo_post
+  modality_aliases:
+    eo_pre:
+      - pre-event
+    eo_post:
+      - post-event
   image_size: 256
   batch_size: 8
   num_workers: 2
@@ -90,7 +96,7 @@ threshold_search:
   apply_best_threshold_on_eval: true
 
 logging:
-  experiment_name: subset_stabilization_eo_only
+  experiment_name: subset_stabilization_eo_temporal
   csv_name: history.csv
   log_every_steps: 20
   experiment_index: experiment_index.csv
