@@ -11,6 +11,14 @@ Lightweight, reproducible PyTorch repository for binary semantic change detectio
 
 The repository is designed so code and configs stay in Git, while datasets, checkpoints, logs, and outputs stay out of the repo.
 
+For the current official Hugging Face snapshot, the resolved training inputs are:
+
+- `pre-event`: RGB EO image
+- `post-event`: single-channel post-event image
+- `target`: raw segmentation mask
+
+So the default multimodal baseline in this repository is `eo_pre + sar_post`, which yields a 4-channel input tensor.
+
 ## Dataset Workflow
 
 The project now supports two modes:

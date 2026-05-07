@@ -26,6 +26,11 @@ data:
   modalities:
     - eo_pre
     - sar_post
+  modality_aliases:
+    eo_pre:
+      - pre-event
+    sar_post:
+      - post-event
   image_size: 256
   batch_size: 4
   num_workers: 2
@@ -83,7 +88,7 @@ threshold_search:
   apply_best_threshold_on_eval: true
 
 logging:
-  experiment_name: unet_resnet18_stage1_opt
+  experiment_name: unet_resnet18_eo_sar_stage1_opt
   csv_name: history.csv
   log_every_steps: 20
   experiment_index: experiment_index.csv

@@ -457,7 +457,9 @@ def main() -> None:
         raise RuntimeError(
             "Configured EO temporal baseline requires two RGB images (6 input channels), "
             f"but the resolved sample '{train_audit['sample_id']}' maps to {resolved_channels}. "
-            "The current dataset root does not provide RGB files for both eo_pre and eo_post."
+            "The current dataset root does not provide RGB files for both eo_pre and eo_post. "
+            "For the official Hugging Face dataset, use data.modalities=['eo_pre', 'sar_post'] "
+            "with modality_aliases mapping pre-event->eo_pre and post-event->sar_post."
         )
 
     model = build_segmentation_model(
