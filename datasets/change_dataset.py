@@ -41,7 +41,9 @@ def _build_alias_lookup(alias_map: dict[str, Sequence[str]]) -> dict[str, str]:
     lookup: dict[str, str] = {}
     for canonical_name, aliases in alias_map.items():
         for alias in aliases:
-            lookup[_normalize_token(alias)] = canonical_name
+            normalized_alias = _normalize_token(alias)
+            if normalized_alias not in lookup:
+                lookup[normalized_alias] = canonical_name
     return lookup
 
 
