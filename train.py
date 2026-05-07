@@ -75,6 +75,13 @@ def resolve_modalities(config: dict[str, Any], args: argparse.Namespace) -> list
     return None
 
 
+def resolve_modality_aliases(config: dict[str, Any]) -> dict[str, list[str]] | None:
+    aliases = config["data"].get("modality_aliases")
+    if not aliases:
+        return None
+    return {str(name): [str(alias) for alias in values] for name, values in aliases.items()}
+
+
 def select_subset_indices(dataset, sample_limit: int | None, seed: int) -> list[int] | None:
     if sample_limit is None or sample_limit >= len(dataset):
         return None
@@ -332,6 +339,7 @@ def main() -> None:
     encoder_name = str(args.encoder_name or config["model"]["encoder_name"])
     loss_name = str(args.loss_name or config["loss"]["name"])
     modalities = resolve_modalities(config, args)
+    modality_aliases = resolve_modality_aliases(config)
 
     logger.info(
         "Training configuration | architecture=%s | encoder=%s | batch_size=%d | image_size=%d | amp_train=%s | amp_eval=%s",
@@ -362,12 +370,14 @@ def main() -> None:
         data_root=dataset_root,
         split=config["data"]["train_split"],
         modalities=modalities,
+        modality_aliases=modality_aliases,
         transform=train_transform,
     )
     val_dataset = build_change_dataset(
         data_root=dataset_root,
         split=config["data"]["val_split"],
         modalities=modalities,
+        modality_aliases=modality_aliases,
         transform=val_transform,
     )
 

@@ -116,6 +116,13 @@ def select_split_subset_indices(config: dict[str, Any], checkpoint: dict[str, An
     return None
 
 
+def resolve_modality_aliases(config: dict[str, Any]) -> dict[str, list[str]] | None:
+    aliases = config["data"].get("modality_aliases")
+    if not aliases:
+        return None
+    return {str(name): [str(alias) for alias in values] for name, values in aliases.items()}
+
+
 def evaluate_split(
     *,
     config: dict[str, Any],
@@ -140,6 +147,7 @@ def evaluate_split(
         data_root=dataset_root,
         split=split,
         modalities=checkpoint_config["modalities"],
+        modality_aliases=resolve_modality_aliases(config),
         transform=build_val_transforms(crop_size=image_size),
     )
     model = build_segmentation_model(

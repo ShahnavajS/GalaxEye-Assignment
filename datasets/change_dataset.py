@@ -45,6 +45,22 @@ def _build_alias_lookup(alias_map: dict[str, Sequence[str]]) -> dict[str, str]:
     return lookup
 
 
+def _merge_alias_maps(
+    base_aliases: dict[str, Sequence[str]],
+    override_aliases: dict[str, Sequence[str]] | None,
+) -> dict[str, tuple[str, ...]]:
+    merged: dict[str, tuple[str, ...]] = {
+        canonical_name: tuple(aliases)
+        for canonical_name, aliases in base_aliases.items()
+    }
+    if not override_aliases:
+        return merged
+
+    for canonical_name, aliases in override_aliases.items():
+        merged[canonical_name] = tuple(aliases)
+    return merged
+
+
 class ChangeDetectionDataset(Dataset):
     def __init__(
         self,
@@ -71,7 +87,7 @@ class ChangeDetectionDataset(Dataset):
         self.max_read_retries = max(1, max_read_retries)
         self.logger = logger or LOGGER
 
-        alias_map = modality_aliases or DEFAULT_MODALITY_ALIASES
+        alias_map = _merge_alias_maps(DEFAULT_MODALITY_ALIASES, modality_aliases)
         self.mask_aliases = {_normalize_token(alias) for alias in (mask_aliases or DEFAULT_MASK_ALIASES)}
         self.alias_lookup = _build_alias_lookup(alias_map)
 
